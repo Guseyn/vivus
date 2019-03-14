@@ -2,8 +2,9 @@
   "devToolsPort": 19002,
   "expoServerPort": 19000,
   "packagerPort": 19001,
-  "packagerPid": 27951,
+  "packagerPid": 34057,
   "expoServerNgrokUrl": "https://4t-uav.anonymous.vivus.exp.direct",
   "packagerNgrokUrl": "https://packager.4t-uav.anonymous.vivus.exp.direct",
-  "ngrokPid": 27975
+  "ngrokPid": 34075,
+  "webpackServerPort": null
 }
