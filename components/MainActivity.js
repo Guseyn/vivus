@@ -24,12 +24,13 @@ export default class MainActivity extends Component {
 
   render() {
     return (
-      <View style={{flex:1, justifyContent: "center"}}>
+      <View style={{flex:1, justifyContent: 'center'}}>
         <BottomNavigation
           navigationState={this.state}
           onIndexChange={this._handleIndexChange}
           renderScene={this._renderScene}
-          color={'#fff'}
+          color={'#ffffff'}
+          style={{flex:1}}
           shifting={true}
         />
       </View>

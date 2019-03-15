@@ -1,10 +1,11 @@
 import * as React from 'react'
-import { View, FlatList, ListItem, StyleSheet, AsyncStorage } from 'react-native'
+import { View, ScrollView, StyleSheet, AsyncStorage, TouchableOpacity } from 'react-native'
 import { FAB, Button, Paragraph, Dialog, Portal, Text, TextInput, List } from 'react-native-paper'
 
 export default class UrlsRoute extends React.Component {
   state = {
-    visible: false,
+    newUrlDialogVisible: false,
+    FABVisible: true,
     newUrlText: '',
     urls: [],
     areUrlsLoading: true
@@ -21,11 +22,21 @@ export default class UrlsRoute extends React.Component {
   }
 
   _showNewUrlDialog = () => {
-    this.setState({ visible: true }) 
+    this.setState({ newUrlDialogVisible: true }) 
   }
 
   _hideNewUrlDialog = () => {
-    this.setState({ visible: false })
+    this.setState({ newUrlDialogVisible: false })
+  }
+
+  _showFAB = () => {
+    setTimeout(() => {
+      this.setState({ FABVisible: true })
+    }, 800)
+  }
+
+  _hideFAB = () => {
+    this.setState({ FABVisible: false })
   }
 
   _updateUrlsInStorage = async () => {
@@ -33,15 +44,19 @@ export default class UrlsRoute extends React.Component {
   }
 
   _deleteUrlFromStorage = async (urlKey) => {
-    this.state.urls.splice(this.state.urls.findIndex(url => url.key === urlKey), 1)
+    let urls = this.state.urls
+    urls.splice(urls.findIndex(url => url.key === urlKey), 1)
+    this.setState({
+      urls: urls
+    })
     await this._updateUrlsInStorage()
   }
 
   _addNewUrl = async () => {
     if (this.state.newUrlText.trim() === '') {
-      return;
+      return
     }
-    this.state.urls.push({key: Math.random(), value: this.state.newUrlText})
+    this.state.urls.unshift({key: Math.random(), value: this.state.newUrlText})
     await this._updateUrlsInStorage()
     this.state.newUrlText = ''
     this._hideNewUrlDialog()
@@ -62,15 +77,26 @@ export default class UrlsRoute extends React.Component {
           ? <Text style={styles.smallInfoText}>Loading...</Text>
           : (
               this.state.urls.length !== 0 
-              ? this.state.urls.map((url) => {
-                  return (
-                    <List.Item
-                      key={url.key.toString()}
-                      title={url['value']}
-                      left={() => <List.Icon icon="link" />}
-                    />
-                  )
-                })
+              ? (
+                  <View style={styles.routeContainer}>
+                    <ScrollView onScrollBeginDrag={this._hideFAB} onScrollEndDrag={this._showFAB}>
+                      {
+                        this.state.urls.map((url) => {
+                          return (
+                            <List.Item
+                              style={styles.listItem}
+                              key={url.key.toString()}
+                              title={url.value.length > 15 ? url.value.slice(0, 12) + '...' : url.value}
+                              left={() => <List.Icon icon="link" />}
+                              right={() => <TouchableOpacity  style={styles.listRightIcon} onPress={() => this._deleteUrlFromStorage(url.key)}>
+                                <List.Icon icon="delete" />
+                              </TouchableOpacity>}
+                            />
+                          )
+                        }) 
+                      }
+                    </ScrollView></View>
+                )
               : <Text style={styles.smallInfoText}> No urls </Text>
             )
         }
@@ -85,7 +111,7 @@ export default class UrlsRoute extends React.Component {
           { this._outputUrls() }
         </View>
         <Portal>
-          <Dialog visible={this.state.visible} onDismiss={this._hideNewUrlDialog}>
+          <Dialog visible={this.state.newUrlDialogVisible} onDismiss={this._hideNewUrlDialog}>
             <Dialog.Title>Add URL</Dialog.Title>
             <Dialog.Content>
               <TextInput
@@ -104,6 +130,7 @@ export default class UrlsRoute extends React.Component {
           color="#ffffff"
           style={styles.fab}
           icon="add"
+          visible={this.state.FABVisible}
           onPress={() => {this._showNewUrlDialog()}}
         />
       </View>
@@ -113,13 +140,23 @@ export default class UrlsRoute extends React.Component {
 
 const styles = StyleSheet.create({
   routeContainer: {
-    flex: 1
+    flex: 1,
+    width: '100%',
+    height: '100%'
   },
   listContainer: {
     flex: 1,
     position: 'absolute',
-    top: 20,
-    padding: 5
+    paddingTop: 20,
+    width: '100%',
+    height: '100%'
+  },
+  listItem: {
+    width: '100%'
+  },
+  listRightIcon: {
+    position: 'absolute',
+    right: 0
   },
   infoText: {
     fontSize: 30,
