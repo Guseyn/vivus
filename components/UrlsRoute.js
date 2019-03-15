@@ -1,14 +1,17 @@
 import * as React from 'react'
 import { View, ScrollView, StyleSheet, AsyncStorage, TouchableOpacity } from 'react-native'
-import { FAB, Button, Paragraph, Dialog, Portal, Text, TextInput, List } from 'react-native-paper'
+import { FAB, Button, Paragraph, Dialog, Portal, Text, TextInput, List, Snackbar } from 'react-native-paper'
 
 export default class UrlsRoute extends React.Component {
   state = {
     newUrlDialogVisible: false,
+    snackBarVisible: false,
     FABVisible: true,
-    newUrlText: '',
+    newUrlText: 'https://',
     urls: [],
-    areUrlsLoading: true
+    areUrlsLoading: true,
+    requestInterval: '15 minutes',
+    responseMessage: ''
   }
 
   componentDidMount() {
@@ -17,6 +20,9 @@ export default class UrlsRoute extends React.Component {
       this.setState({
         urls: JSON.parse(urls),
         areUrlsLoading: false
+      })
+      AsyncStorage.getItem('REQUEST_INTERVAL').then((interval) => {
+        interval = interval || this.state.requestInterval
       })
     })
   }
@@ -58,7 +64,7 @@ export default class UrlsRoute extends React.Component {
     }
     this.state.urls.unshift({key: Math.random(), value: this.state.newUrlText})
     await this._updateUrlsInStorage()
-    this.state.newUrlText = ''
+    this.state.newUrlText = 'https://'
     this._hideNewUrlDialog()
   }
 
@@ -66,6 +72,18 @@ export default class UrlsRoute extends React.Component {
     this.setState({
       newUrlText: value
     })    
+  }
+
+  _notify = (message) => {
+    this.setState({ responseMessage: message, snackBarVisible: true })
+  }
+
+  _fetchUrl = (url, onSuccess) => {
+    fetch(url).then((response) => {
+      this._notify(`${url} have responded ${response.status}`)
+    }).catch((error) => {
+      this._notify(error.message)
+    })
   }
 
   _outputUrls = () => {
@@ -86,14 +104,16 @@ export default class UrlsRoute extends React.Component {
                             <List.Item
                               style={styles.listItem}
                               key={url.key.toString()}
-                              title={url.value.length > 15 ? url.value.slice(0, 12) + '...' : url.value}
-                              left={() => <List.Icon icon="link" />}
-                              right={() => <TouchableOpacity  style={styles.listRightIcon} onPress={() => this._deleteUrlFromStorage(url.key)}>
+                              title={url.value.length > 25 ? url.value.slice(0, 22) + '...' : url.value}
+                              left={() => <TouchableOpacity onPress={() => this._fetchUrl(url.value, true)}>
+                                <List.Icon icon="link" />
+                              </TouchableOpacity>}
+                              right={() => <TouchableOpacity onPress={() => this._deleteUrlFromStorage(url.key)}>
                                 <List.Icon icon="delete" />
                               </TouchableOpacity>}
                             />
                           )
-                        }) 
+                        })
                       }
                     </ScrollView></View>
                 )
@@ -122,10 +142,15 @@ export default class UrlsRoute extends React.Component {
               />
             </Dialog.Content>
             <Dialog.Actions>
-              <Button onPress={this._addNewUrl}>Done</Button>
+              <Button onPress={this._addNewUrl}>Add</Button>
             </Dialog.Actions>
           </Dialog>
         </Portal>
+        <Snackbar
+          visible={this.state.snackBarVisible}
+          onDismiss={() => this.setState({ snackBarVisible: false })}>
+          {this.state.responseMessage}
+        </Snackbar>
         <FAB
           color="#ffffff"
           style={styles.fab}
@@ -154,9 +179,9 @@ const styles = StyleSheet.create({
   listItem: {
     width: '100%'
   },
-  listRightIcon: {
+  listLeftIcon: {
     position: 'absolute',
-    right: 0
+    left: 0
   },
   infoText: {
     fontSize: 30,
