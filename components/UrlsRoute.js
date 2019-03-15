@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { View, FlatList, ListItem, StyleSheet, AsyncStorage } from 'react-native'
+import { View, ScrollView, StyleSheet, AsyncStorage, TouchableOpacity } from 'react-native'
 import { FAB, Button, Paragraph, Dialog, Portal, Text, TextInput, List } from 'react-native-paper'
 
 export default class UrlsRoute extends React.Component {
@@ -33,15 +33,19 @@ export default class UrlsRoute extends React.Component {
   }
 
   _deleteUrlFromStorage = async (urlKey) => {
-    this.state.urls.splice(this.state.urls.findIndex(url => url.key === urlKey), 1)
+    let urls = this.state.urls
+    urls.splice(urls.findIndex(url => url.key === urlKey), 1)
+    this.setState({
+      urls: urls
+    })
     await this._updateUrlsInStorage()
   }
 
   _addNewUrl = async () => {
     if (this.state.newUrlText.trim() === '') {
-      return;
+      return
     }
-    this.state.urls.push({key: Math.random(), value: this.state.newUrlText})
+    this.state.urls.unshift({key: Math.random(), value: this.state.newUrlText})
     await this._updateUrlsInStorage()
     this.state.newUrlText = ''
     this._hideNewUrlDialog()
@@ -62,15 +66,26 @@ export default class UrlsRoute extends React.Component {
           ? <Text style={styles.smallInfoText}>Loading...</Text>
           : (
               this.state.urls.length !== 0 
-              ? this.state.urls.map((url) => {
-                  return (
-                    <List.Item
-                      key={url.key.toString()}
-                      title={url['value']}
-                      left={() => <List.Icon icon="link" />}
-                    />
-                  )
-                })
+              ? (
+                  <View style={{flex: 1}}>
+                    <ScrollView>
+                      {
+                        this.state.urls.map((url) => {
+                          return (
+                            <List.Item
+                              style={styles.listItem}
+                              key={url.key.toString()}
+                              title={url.value.length > 15 ? url.value.slice(0, 12) + '...' : url.value}
+                              left={() => <List.Icon icon="link" />}
+                              right={() => <TouchableOpacity  style={styles.listRightIcon} onPress={() => this._deleteUrlFromStorage(url.key)}>
+                                <List.Icon icon="delete" />
+                              </TouchableOpacity>}
+                            />
+                          )
+                        }) 
+                      }
+                    </ScrollView></View>
+                )
               : <Text style={styles.smallInfoText}> No urls </Text>
             )
         }
@@ -113,13 +128,23 @@ export default class UrlsRoute extends React.Component {
 
 const styles = StyleSheet.create({
   routeContainer: {
-    flex: 1
+    flex: 1,
+    width: '100%',
+    height: '100%'
   },
   listContainer: {
     flex: 1,
     position: 'absolute',
-    top: 20,
-    padding: 5
+    paddingTop: 20,
+    width: '100%',
+    height: '100%'
+  },
+  listItem: {
+    width: '100%'
+  },
+  listRightIcon: {
+    position: 'absolute',
+    right: 0
   },
   infoText: {
     fontSize: 30,
