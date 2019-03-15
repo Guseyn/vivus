@@ -3,8 +3,7 @@ import { View } from 'react-native'
 import { BottomNavigation, Text } from 'react-native-paper'
 import { Button, Paragraph, Dialog, Portal } from 'react-native-paper';
 import UrlsRoute from './UrlsRoute'
-
-const SettingsRoute = () => <Text>Settings</Text>
+import SettingsRoute from './SettingsRoute'
 
 export default class MainActivity extends Component {
   state = {
