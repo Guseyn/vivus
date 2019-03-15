@@ -4,7 +4,8 @@ import { FAB, Button, Paragraph, Dialog, Portal, Text, TextInput, List } from 'r
 
 export default class UrlsRoute extends React.Component {
   state = {
-    visible: false,
+    newUrlDialogVisible: false,
+    FABVisible: true,
     newUrlText: '',
     urls: [],
     areUrlsLoading: true
@@ -21,11 +22,21 @@ export default class UrlsRoute extends React.Component {
   }
 
   _showNewUrlDialog = () => {
-    this.setState({ visible: true }) 
+    this.setState({ newUrlDialogVisible: true }) 
   }
 
   _hideNewUrlDialog = () => {
-    this.setState({ visible: false })
+    this.setState({ newUrlDialogVisible: false })
+  }
+
+  _showFAB = () => {
+    setTimeout(() => {
+      this.setState({ FABVisible: true })
+    }, 800)
+  }
+
+  _hideFAB = () => {
+    this.setState({ FABVisible: false })
   }
 
   _updateUrlsInStorage = async () => {
@@ -67,8 +78,8 @@ export default class UrlsRoute extends React.Component {
           : (
               this.state.urls.length !== 0 
               ? (
-                  <View style={{flex: 1}}>
-                    <ScrollView>
+                  <View style={styles.routeContainer}>
+                    <ScrollView onScrollBeginDrag={this._hideFAB} onScrollEndDrag={this._showFAB}>
                       {
                         this.state.urls.map((url) => {
                           return (
@@ -100,7 +111,7 @@ export default class UrlsRoute extends React.Component {
           { this._outputUrls() }
         </View>
         <Portal>
-          <Dialog visible={this.state.visible} onDismiss={this._hideNewUrlDialog}>
+          <Dialog visible={this.state.newUrlDialogVisible} onDismiss={this._hideNewUrlDialog}>
             <Dialog.Title>Add URL</Dialog.Title>
             <Dialog.Content>
               <TextInput
@@ -119,6 +130,7 @@ export default class UrlsRoute extends React.Component {
           color="#ffffff"
           style={styles.fab}
           icon="add"
+          visible={this.state.FABVisible}
           onPress={() => {this._showNewUrlDialog()}}
         />
       </View>
