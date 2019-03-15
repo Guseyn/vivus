@@ -6,7 +6,7 @@ export default class SettingsRoute extends React.Component {
   state = {
     isSwitchOn: true,
     requestInterval: {
-      label: 'minute'
+      label: '15 minutes'
     }
   }
 
@@ -61,8 +61,7 @@ export default class SettingsRoute extends React.Component {
                 }
               }
             >
-              <Picker.Item label="minute" value="minute" />
-              <Picker.Item label="5 minutes" value="5 minutes" />
+              <Picker.Item label="15 minutes" value="15 minutes" />
               <Picker.Item label="30 minutes" value="30 minutes" />
               <Picker.Item label="hour" value="hour" />
               <Picker.Item label="5 hours" value="5 hours" />
